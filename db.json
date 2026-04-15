@@ -1,0 +1,119 @@
+{
+  "users": [
+    {
+      "id": "1776183089467",
+      "username": "fahdii",
+      "email": "fahdiikhann@gmail.com",
+      "password": "$2b$10$rVYTs2ptmLKL0DDW3t2enuAdc7lY46q9u7TerEVhrBFd02zhNW/Oy",
+      "balance": 75,
+      "totalSpent": 75,
+      "createdAt": "2026-04-14T16:11:29.467Z"
+    }
+  ],
+  "purchases": [
+    {
+      "id": "1776186756730",
+      "userId": "1776183089467",
+      "mailId": 5188736,
+      "emailAddress": "nuhelaq188@gmail.com",
+      "domain": "gmail.com",
+      "verificationCode": null,
+      "status": "cancelled",
+      "createdAt": "2026-04-14T17:12:36.730Z"
+    },
+    {
+      "id": "1776189003963",
+      "userId": "1776183089467",
+      "mailId": 5189160,
+      "emailAddress": "perongpegi55@gmail.com",
+      "domain": "gmail.com",
+      "verificationCode": null,
+      "status": "cancelled",
+      "createdAt": "2026-04-14T17:50:03.963Z"
+    },
+    {
+      "id": "1776189637760",
+      "userId": "1776183089467",
+      "mailId": 5189254,
+      "emailAddress": "popop727277@gmail.com",
+      "domain": "gmail.com",
+      "verificationCode": null,
+      "status": "cancelled",
+      "createdAt": "2026-04-14T18:00:37.760Z"
+    },
+    {
+      "id": "1776190140577",
+      "userId": "1776183089467",
+      "mailId": 5189409,
+      "emailAddress": "sigwc49@gmail.com",
+      "domain": "gmail.com",
+      "verificationCode": null,
+      "status": "cancelled",
+      "createdAt": "2026-04-14T18:09:00.577Z"
+    },
+    {
+      "id": "1776191635253",
+      "userId": "1776183089467",
+      "mailId": 5189745,
+      "emailAddress": "sigwc49@gmail.com",
+      "domain": "gmail.com",
+      "verificationCode": null,
+      "status": "cancelled",
+      "createdAt": "2026-04-14T18:33:55.253Z"
+    },
+    {
+      "id": "1776191987949",
+      "userId": "1776183089467",
+      "mailId": 5189820,
+      "emailAddress": "imranhossain02as@gmail.com",
+      "domain": "gmail.com",
+      "verificationCode": null,
+      "status": "cancelled",
+      "createdAt": "2026-04-14T18:39:47.949Z"
+    },
+    {
+      "id": "1776192073760",
+      "userId": "1776183089467",
+      "mailId": 5189837,
+      "emailAddress": "dssffh957@gmail.com",
+      "domain": "gmail.com",
+      "verificationCode": "32498",
+      "status": "cancelled",
+      "createdAt": "2026-04-14T18:41:13.760Z"
+    },
+    {
+      "id": "1776192983968",
+      "userId": "1776183089467",
+      "mailId": 5190180,
+      "emailAddress": "sigwc49@gmail.com",
+      "domain": "gmail.com",
+      "verificationCode": "07437",
+      "status": "received",
+      "createdAt": "2026-04-14T18:56:23.968Z"
+    },
+    {
+      "id": "1776232519325",
+      "userId": "1776183089467",
+      "mailId": 5198053,
+      "emailAddress": "hjcjcuuyfujjv@gmail.com",
+      "domain": "gmail.com",
+      "verificationCode": null,
+      "status": "cancelled",
+      "createdAt": "2026-04-15T05:55:19.325Z"
+    }
+  ],
+  "adminTransactions": [
+    {
+      "id": "1776183125681",
+      "userEmail": "fahdiikhann@gmail.com",
+      "amount": 50,
+      "createdAt": "2026-04-14T16:12:05.681Z"
+    },
+    {
+      "id": "1776189601099",
+      "userEmail": "fahdiikhann@gmail.com",
+      "amount": 100,
+      "createdAt": "2026-04-14T18:00:01.099Z"
+    }
+  ]
+}

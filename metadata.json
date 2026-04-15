@@ -1,0 +1,6 @@
+{
+  "name": "Facebook Email Verifier",
+  "description": "A secure platform for Facebook email verification using temporary email services.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
