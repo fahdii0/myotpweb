@@ -2,13 +2,19 @@ import { Pool, PoolClient } from "pg";
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 // Initialize database tables
 export async function initializeDatabase() {
   const client = await pool.connect();
   try {
-    // Create users table
+    console.log("Initializing database tables...");
+
+    // Create users table first
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id VARCHAR(255) PRIMARY KEY,
@@ -20,12 +26,13 @@ export async function initializeDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    console.log("Users table created/verified");
 
-    // Create purchases table
+    // Create purchases table (references users)
     await client.query(`
       CREATE TABLE IF NOT EXISTS purchases (
         id VARCHAR(255) PRIMARY KEY,
-        user_id VARCHAR(255) NOT NULL REFERENCES users(id),
+        user_id VARCHAR(255) NOT NULL,
         mail_id VARCHAR(255) NOT NULL,
         email_address VARCHAR(255),
         domain VARCHAR(255),
@@ -34,6 +41,7 @@ export async function initializeDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    console.log("Purchases table created/verified");
 
     // Create admin_transactions table
     await client.query(`
@@ -44,8 +52,12 @@ export async function initializeDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    console.log("Admin transactions table created/verified");
 
     console.log("Database tables initialized successfully");
+  } catch (error) {
+    console.error("Database initialization error:", error);
+    throw error;
   } finally {
     client.release();
   }

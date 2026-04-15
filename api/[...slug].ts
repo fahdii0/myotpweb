@@ -1,4 +1,3 @@
-import { VercelRequest, VercelResponse } from "@vercel/node";
 import axios from "axios";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -18,6 +17,7 @@ import {
   updatePurchaseCode,
   createAdminTransaction,
   getStats,
+  pool,
 } from "../../lib/db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fb-verifier-secret-key-12345";
@@ -25,21 +25,21 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "SHINE@786";
 const SMSBOWER_API_KEY = process.env.SMSBOWER_API_KEY || "yu5BsIwXebcjYInuoaYDGojVW1ayPOFv";
 const SMSBOWER_BASE_URL = "https://smsbower.online/api/mail/";
 
-function methodNotAllowed(res: VercelResponse) {
+function methodNotAllowed(res: any) {
   res.status(405).json({ error: "Method not allowed" });
 }
 
-function jsonError(res: VercelResponse, status: number, message: string) {
+function jsonError(res: any, status: number, message: string) {
   res.status(status).json({ error: message });
 }
 
-function getToken(req: VercelRequest) {
+function getToken(req: any) {
   const authHeader = req.headers.authorization || "";
   const token = authHeader.toString().split(" ")[1];
   return token;
 }
 
-function verifyToken(req: VercelRequest, res: VercelResponse) {
+function verifyToken(req: any, res: any) {
   const token = getToken(req);
   if (!token) {
     jsonError(res, 401, "Unauthorized");
@@ -53,11 +53,11 @@ function verifyToken(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-function requireAuth(req: VercelRequest, res: VercelResponse) {
+function requireAuth(req: any, res: any) {
   return verifyToken(req, res);
 }
 
-function requireAdmin(req: VercelRequest, res: VercelResponse) {
+function requireAdmin(req: any, res: any) {
   const decoded = verifyToken(req, res);
   if (!decoded) return null;
   if (decoded.role !== "admin") {
@@ -67,7 +67,7 @@ function requireAdmin(req: VercelRequest, res: VercelResponse) {
   return decoded;
 }
 
-const getRoute = (req: VercelRequest) => {
+const getRoute = (req: any) => {
   const slug = req.query.slug;
   if (Array.isArray(slug)) {
     return slug.join("/");
@@ -75,52 +75,98 @@ const getRoute = (req: VercelRequest) => {
   return slug || "";
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   await initializeDatabase();
 
   const route = getRoute(req);
 
+  // Debug endpoint to check database connection
+  if (route === "debug/db") {
+    try {
+      const client = await pool.connect();
+      await client.query('SELECT 1');
+      client.release();
+      return res.json({
+        status: "Database connected successfully",
+        env: {
+          POSTGRES_URL: !!process.env.POSTGRES_URL,
+          DATABASE_URL: !!process.env.DATABASE_URL,
+          JWT_SECRET: !!process.env.JWT_SECRET
+        },
+        route: route,
+        query: req.query
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        error: "Database connection failed",
+        details: error.message,
+        env: {
+          POSTGRES_URL: !!process.env.POSTGRES_URL,
+          DATABASE_URL: !!process.env.DATABASE_URL
+        }
+      });
+    }
+  }
+
   switch (route) {
     case "auth/register": {
+      console.log("Registration attempt:", req.body);
       if (req.method !== "POST") return methodNotAllowed(res);
       const { username, email, password } = req.body || {};
+      console.log("Registration data:", { username, email, hasPassword: !!password });
       if (!username || !email || !password) {
         return jsonError(res, 400, "Missing required fields");
       }
 
-      const existingUser = await getUserByEmail(email);
-      if (existingUser) {
-        return jsonError(res, 400, "User already exists");
-      }
+      try {
+        const existingUser = await getUserByEmail(email);
+        if (existingUser) {
+          return jsonError(res, 400, "User already exists");
+        }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const userId = Date.now().toString();
-      await createUser(userId, username, email, hashedPassword);
-      return res.status(201).json({ message: "User registered successfully" });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const userId = Date.now().toString();
+        console.log("Creating user:", userId);
+        await createUser(userId, username, email, hashedPassword);
+        console.log("User created successfully");
+        return res.status(201).json({ message: "User registered successfully" });
+      } catch (error: any) {
+        console.error("Registration error:", error);
+        return jsonError(res, 500, `Registration failed: ${error.message}`);
+      }
     }
 
     case "auth/login": {
+      console.log("Login attempt:", req.body);
       if (req.method !== "POST") return methodNotAllowed(res);
       const { email, password } = req.body || {};
+      console.log("Login data:", { email, hasPassword: !!password });
       if (!email || !password) {
         return jsonError(res, 400, "Missing email or password");
       }
 
-      const user = await getUserByEmail(email);
-      if (!user || !(await bcrypt.compare(password, user.password))) {
-        return jsonError(res, 400, "Invalid credentials");
-      }
+      try {
+        const user = await getUserByEmail(email);
+        console.log("User found:", !!user);
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+          return jsonError(res, 400, "Invalid credentials");
+        }
 
-      const token = jwt.sign({ id: user.id, email: user.email, role: "user" }, JWT_SECRET);
-      return res.json({
-        token,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          balance: user.balance,
-        },
-      });
+        const token = jwt.sign({ id: user.id, email: user.email, role: "user" }, JWT_SECRET);
+        console.log("Login successful for user:", user.id);
+        return res.json({
+          token,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            balance: user.balance,
+          },
+        });
+      } catch (error: any) {
+        console.error("Login error:", error);
+        return jsonError(res, 500, `Login failed: ${error.message}`);
+      }
     }
 
     case "auth/admin-login": {
