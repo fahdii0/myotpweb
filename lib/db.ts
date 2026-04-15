@@ -2,10 +2,12 @@ import { Pool, PoolClient } from "pg";
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: {
+    rejectUnauthorized: false, // Required for Neon
+  },
   max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000, // Increased timeout for Neon
 });
 
 // Initialize database tables
