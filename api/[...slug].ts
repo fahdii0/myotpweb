@@ -76,18 +76,53 @@ const getRoute = (req: any) => {
 };
 
 export default async function handler(req: any, res: any) {
-  await initializeDatabase();
+  console.log("API Request:", req.method, req.url, req.query);
+
+  try {
+    console.log("Initializing database...");
+    await initializeDatabase();
+    console.log("Database initialized successfully");
+  } catch (dbError: any) {
+    console.error("Database initialization failed:", dbError);
+    return res.status(500).json({
+      error: "Database initialization failed",
+      details: dbError.message,
+      code: dbError.code
+    });
+  }
 
   const route = getRoute(req);
+  console.log("Route:", route);
+
+  // Simple test endpoint
+  if (route === "test") {
+    return res.json({
+      message: "API is working",
+      route: route,
+      timestamp: new Date().toISOString(),
+      env: {
+        NODE_ENV: process.env.NODE_ENV,
+        POSTGRES_URL: !!process.env.POSTGRES_URL,
+        DATABASE_URL: !!process.env.DATABASE_URL,
+        JWT_SECRET: !!process.env.JWT_SECRET
+      }
+    });
+  }
 
   // Debug endpoint to check database connection
   if (route === "debug/db") {
     try {
+      console.log("Testing database connection...");
       const client = await pool.connect();
-      await client.query('SELECT 1');
+      console.log("Connected to database");
+      const result = await client.query('SELECT NOW() as current_time, version() as pg_version');
+      console.log("Query result:", result.rows[0]);
       client.release();
+      console.log("Database test successful");
       return res.json({
         status: "Database connected successfully",
+        timestamp: result.rows[0].current_time,
+        version: result.rows[0].pg_version,
         env: {
           POSTGRES_URL: !!process.env.POSTGRES_URL,
           DATABASE_URL: !!process.env.DATABASE_URL,
@@ -97,9 +132,11 @@ export default async function handler(req: any, res: any) {
         query: req.query
       });
     } catch (error: any) {
+      console.error("Database test failed:", error);
       return res.status(500).json({
         error: "Database connection failed",
         details: error.message,
+        code: error.code,
         env: {
           POSTGRES_URL: !!process.env.POSTGRES_URL,
           DATABASE_URL: !!process.env.DATABASE_URL
