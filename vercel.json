@@ -1,0 +1,21 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "env": [
+    "JWT_SECRET",
+    "ADMIN_PASSWORD",
+    "SMSBOWER_API_KEY",
+    "POSTGRES_URL",
+    "DATABASE_URL"
+  ]
+}
